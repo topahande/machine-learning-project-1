@@ -28,7 +28,9 @@ Alopecia (1. Yes, 2. No): Hair loss.
 Obesity (1. Yes, 2. No): Presence of obesity.  
 Class (1. Positive, 2. Negative): Diabetes classification.  
 
-Exploratory data analysis (EDA) and model training are included in notebook.ipynb. The data were divided into three sets: training, validation, and test. Four different models were trained and their AUC scores are given in the following table.  
+## Exploratory data analysis (EDA) and model training  
+
+Exploratory data analysis (EDA) and model training are included in [notebook.ipynb](). In the notebook, the data is divided into three sets: training, validation, and test. Four different models were trained using the training set and their AUC scores are given in the following table.  
 
 | Model | AUC in training set | AUC in validation set | AUC in test set | Final model |
 | ----- | --------------------| --------------------- | --------------- | ----------- |
@@ -37,7 +39,9 @@ Exploratory data analysis (EDA) and model training are included in notebook.ipyn
 | Random forest       | 1     | 0.995                 | 0.999           |  *          |
 | XBGoost             | 1     | 0.994                 |                 |             |
 
-Random forest was selected as our final model as it achieved the highest AUC scores. A separate python file named ``train.py`` was created for final training of the full training data (training + validation) with the hyperparameter settings which were determined in the previous step (i.e. using only the training set). Additionally, a 5-fold cross validation is performed in ``train.py``. Finally, AUC score on the test set is computed and the model is saved to 'rf_model_diabetes.bin' . To run ``train.py``,
+## Exporting the training code of the final model to python script
+
+Random forest was selected as the final model as it achieved the highest AUC scores. A separate python file named ``train.py`` was created for final training of the full training data (training + validation) with the hyperparameter settings which were determined in the previous step (i.e. using only the training set). Additionally, a 5-fold cross validation is performed in ``train.py``. Finally, AUC score on the test set is computed and the model is saved to 'rf_model_diabetes.bin' . To run ``train.py``, type the commands below in your terminal:
 
 1) Clone this repository on your computer: ``git clone https://github.com/topahande/machine-learning-project-1.git``
 2) Go the the directory machine-learning-project-1: ``cd machine-learning-project-1``
@@ -47,13 +51,14 @@ Random forest was selected as our final model as it achieved the highest AUC sco
 
 ### Model deployment
 
-The final model was deployed with Flask (see ``predict.py`` and ``predict-test.py``). ``predict-test.py`` contains information of two individuals taken from the test data. The following code should return the decision for these two individuals.
+The final model was deployed using Flask with Gunicorn as WSGI HTTP server (see ``predict.py`` and ``predict-test.py``). Note that Gunicorn works only on Linux and Mac OS. If you are on Windows computer, you could try using waitress instead of Gunicorn.   
+``predict-test.py`` contains information of two individuals taken from the test data in json format. The following codes should return the decision for these two individuals (make sure that you are in directory ``machine-learning-project-1``).
 
 In a terminal, run following commands:
 
-``pip install gunicorn``
+``pip install gunicorn``  (If in Windows: ``pip install waitress``)
 
-``gunicorn --bind 0.0.0.0:9696 predict:app``
+``gunicorn --bind 0.0.0.0:9696 predict:app`` (If in Windows:``waitress-serve --listen=0.0.0.0:9696 predict:app``)
 
 In another  terminal, run the following command:  
 
@@ -62,11 +67,15 @@ In another  terminal, run the following command:
 The output should look like this:
 
 
-### Dependency and environment management. 
+### Dependency and environment management  
+
+I used pipenv for creating a virtual environment:  
 
 ``pip install pipenv``
 
-``pipenv install numpy scikit-learn==1.3.0 flask gunicorn``
+``pipenv install numpy scikit-learn==1.3.0 flask gunicorn``  (This creates two files: ``Pipfile`` and ``Pipfile.lock``)
+
+To run our service in this environment with the dependencies given in ``Pipfile``, run the following code:
 
 ``pipenv run gunicorn --bind 0.0.0.0:9696 predict:app``
 
@@ -74,18 +83,37 @@ In another  terminal, run the following command:
 
 ``python predict-test.py``  
 
+This should produce the output:
+
+
 
 ### Containerization  
 
+Containerization was done using Docker (see ``Dockerfile``). 
+
+First, run ``python:3.11.7-slim`` image with Docker:  
+
 ``docker run -it --rm --entrypoint=bash python:3.11.7-slim``
 
-``docker build -t diabetes-project .``
+Then, build the docker image and name it ``diabetes-project`` (uses the specifications given in ``Dockerfile``):  
+
+``docker build -t diabetes-project .``  
+
+Now, we can run our docker image:
 
 ``docker run -it --rm -p 9696:9696 diabetes-project``
 
 In another  terminal, run the following command:  
 
 ``python predict-test.py`` 
+
+Again, this should produce the output:
+
+
+## Cloud deployment (TO DO)
+
+Additionally, we can deploy our service to cloud or kubernetes cluster (local or remote).
+
 
 
 
